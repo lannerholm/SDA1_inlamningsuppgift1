@@ -98,6 +98,7 @@ Ställ in arbetsmappen samt ladda in dataseten `Boston_census_data.Rdata` och `B
 ```{r}
 # Write your code here
 load(file = url("https://github.com/StatisticsSU/SDA1/blob/main/assignments/assignment1/Boston_census_data.RData?raw=true")) 
+load(file = url("https://github.com/StatisticsSU/SDA1/blob/main/assignments/assignment1/Boston_districts_to_predict.RData?raw=true"))
 ```
 :::
 
