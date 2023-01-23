@@ -47,3 +47,11 @@ town_subset <- Boston_census_data %>%
 fav_stats(town_subset$crime_rate)
 boxplot(crime_rate ~ town, data = town_subset)
 
+####################
+#find the top 3 correlations between crime_rate and the other numerical variables
+strictly_numerical <- Boston_census_data %>%
+  select_if(is.numeric) %>%
+  select(-any_of(c("crime_rate")))
+correlations <- cor(Boston_census_data$crime_rate, strictly_numerical)
+correlations
+# now test for significance
