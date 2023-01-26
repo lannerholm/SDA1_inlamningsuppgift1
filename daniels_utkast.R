@@ -18,27 +18,23 @@ load(file = url("https://github.com/StatisticsSU/SDA1/blob/main/assignments/assi
 head(Boston_census_data)
 str(Boston_census_data)
 
-
-# histogrammet visar att distributionen av crime_rate är unimodal, icke-symmetrisk och skev åt höger.
-# datan har flera extrema outliers, och därför  beskriver medianen centralpunkten bättre än medelvärde.
+1.1
+# histogrammet visar att distributionen av crime_rate är unimodal, icke-symmetrisk och mycket skev åt höger.
+# datan ser ut att ha flera outliers.
 histogram(~ crime_rate, data = Boston_census_data, breaks = 50)
-densityplot(~ crime_rate, data = Boston_census_data)
+favstats(Boston_census_data$crime_rate)
 
-n <- length(Boston_census_data$crime_rate)
-min <- min(Boston_census_data$crime_rate)
-max <- max(Boston_census_data$crime_rate)
-range <- min - max
-median <- median(Boston_census_data$crime_rate)
-mean <- mean(Boston_census_data$crime_rate)
-quartiles <- quantile(Boston_census_data$crime_rate)
-q1 <- quartiles[2]
-q3 <- quartiles[4]
-iqr <- q3 - q1
-variance <- var(Boston_census_data$crime_rate)
-std_dev <- sd(Boston_census_data$crime_rate)
+#re-express med square root av crime_rate. Fördelningen är förtfarande skev.
+histogram(~ sqrt(crime_rate), data = Boston_census_data, breaks = 50)
 
-boxplot(crime_rate, data = Boston_census_data)
+#re-expression with log visar en bimodal fördelning, något mer symmetrisk. denna är nog bäst.
+#bimodaliteten är intressant. vilken tredje variabel kan förklara?
+histogram(~ log(crime_rate), data = Boston_census_data, breaks = 50)
+densityplot(~ log(crime_rate), data = Boston_census_data)
+fav_stats(log(Boston_census_data$crime_rate))
+boxplot(log(crime_rate), data = Boston_census_data)
 
+1.2
 
 selected_towns <- c("Boston East Boston", "Boston Downtown", "Cambridge", "Boston Roxbury", "Boston Savin Hill")
 town_subset <- Boston_census_data %>%
@@ -46,12 +42,108 @@ town_subset <- Boston_census_data %>%
 
 fav_stats(town_subset$crime_rate)
 boxplot(crime_rate ~ town, data = town_subset)
+boxplot(log(crime_rate) ~ town, data = town_subset)
+# boxplot diagrammet visar att crime_rate . Cambridge har lägre brottsligehet.
 
-####################
-#find the top 3 correlations between crime_rate and the other numerical variables
+### 1.3
+
 strictly_numerical <- Boston_census_data %>%
   select_if(is.numeric) %>%
-  select(-any_of(c("crime_rate")))
-correlations <- cor(Boston_census_data$crime_rate, strictly_numerical)
-correlations
-# now test for significance
+  select(-any_of(c("longitude", "latitude"))) #finns här kategoriska variabler kvar?
+correlations <- cor(strictly_numerical)
+library(corrplot)
+corrplot(correlations, method = "number")
+# vi kan avläsa att de tre varablerna med högst korrelation är radial_access, median_home_value och tax_rate.
+# negativt samband
+plot(Boston_census_data$crime_rate ~ Boston_census_data$median_home_value)
+plot(log(Boston_census_data$crime_rate) ~ Boston_census_data$median_home_value)
+
+plot(Boston_census_data$crime_rate ~ Boston_census_data$tax_rate)
+plot(log(Boston_census_data$crime_rate) ~ Boston_census_data$tax_rate)
+
+plot(Boston_census_data$crime_rate ~ Boston_census_data$radial_access) # not numerical? categorical?
+plot(log(Boston_census_data$crime_rate) ~ Boston_census_data$radial_access)
+
+### 2.1
+histogram(Boston_census_data$tax_rate, breaks = 100)
+favstats(Boston_census_data$tax_rate)
+Boston_census_data$cat_tax <- cut(Boston_census_data$tax_rate, 
+                                  breaks=c(0, 250, 400, 800),
+                                  labels=c('Low', 'Medium', 'High'))
+head(Boston_census_data)
+histogram(~ tax_rate | cat_tax, data = Boston_census_data)
+favstats(~ tax_rate | cat_tax, data = Boston_census_data)
+
+histogram(~ tax_rate | cat_tax + borders_charles, data = Boston_census_data)
+favstats(~ tax_rate | cat_tax + borders_charles, data = Boston_census_data)
+
+boxplot(tax_rate ~ cat_tax + borders_charles, data = Boston_census_data)
+
+### 2.3
+#Hur många procent av alla censusdistrikt ligger i angränsning till Charles 
+# River och tillhör en hög skattekategori?
+tally(~ cat_tax & borders_charles, data = Boston_census_data, margins = TRUE, format = "percent")
+# vi avläser 2.1%
+
+# Hur stor andel av censusdistrikten med hög skatt ligger inte i angränsning till Charles River?
+tally(~ borders_charles | cat_tax, data = Boston_census_data, margins = TRUE, format = "percent")
+# vi avläser 94.7%
+
+### 2.4
+#se corrplot ovan
+# vi avläser indust_p 0.72, NOx 0.67, radial_access 0.91, crime rate 0.58, median_home_value -0.58
+plot(indust_p ~ tax_rate, data = Boston_census_data)
+plot(NOx ~ tax_rate, data = Boston_census_data)
+plot(crime_rate ~ tax_rate, data = Boston_census_data)
+plot(median_home_value ~ tax_rate, data = Boston_census_data)
+
+#radial access korrelationen påverkas av en extrem outlier. är denna kategorisk?
+# kanske ska ta bort outliern och räkna igen.
+plot(radial_access ~ tax_rate, data = Boston_census_data)
+
+### 3
+
+library(geosphere) # Install if not available
+lat_long <- cbind(Boston_census_data$latitude, Boston_census_data$longitude)
+fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
+Boston_census_data$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
+
+library(leaflet) # Install if not available
+Boston_map <- leaflet() %>% 
+  addTiles() %>%
+  addMarkers(lat = fenway_park_lat_long[1], lng = fenway_park_lat_long[2], popup="Fenway park") %>%
+  addMarkers(lat = Boston_census_data$latitude[30], lng = Boston_census_data$longitude[30], popup="Observation 30") %>%
+  addMarkers(lat = Boston_census_data$latitude[45], lng = Boston_census_data$longitude[45], popup="Observation 45") 
+
+Boston_map # Show interactive map
+head(Boston_census_data)
+histogram(~dist_fenway_park, data =Boston_census_data)
+
+### 3.1
+favstats(Boston_census_data$dist_fenway_park)
+#avläser att längsta dist_fenway_park är 33638.4, och kortaste är 887.9
+furthest<- Boston_census_data %>%
+  filter(Boston_census_data$dist_fenway_park > 33638) # Marshfield
+
+closest <- Boston_census_data %>%
+  filter(Boston_census_data$dist_fenway_park < 888) # Wilmington
+
+Boston_map %>%
+  addMarkers(lat = furthest$latitude, lng = furthest$longitude, popup = "Marshfield") %>%
+  addMarkers(lat = closest$latitude, lng = closest$longitude, popup = "Wilmington")
+### 3.2
+cor(Boston_census_data$median_home_value, Boston_census_data$dist_fenway_park)
+#mycke låg korrelation. ej signifikan?
+plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
+#plotten visar inget samband
+### 3.3
+
+cor(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
+#svagt negativt korrelation
+plot(Boston_census_data$dist_fenway_park, Boston_census_data$crime_rate)
+# men plot visar e spike i crime rate ungefärmellan 5000-10000(m?) avstånd. korrelation är förmodligen ej ett bra mått här
+
+### 4.1
+
+fit <- lm(NOx ~ employ_dist, data = Boston_census_data)
+summary(fit)
