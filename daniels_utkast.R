@@ -147,3 +147,4 @@ plot(Boston_census_data$dist_fenway_park, Boston_census_data$crime_rate)
 
 fit <- lm(NOx ~ employ_dist, data = Boston_census_data)
 summary(fit)
+plot(fit)

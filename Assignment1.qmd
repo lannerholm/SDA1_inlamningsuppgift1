@@ -2,9 +2,9 @@
 title: "Statistik och dataanalys I, 15 hp "
 subtitle: "Inlämningsuppgift 1"
 author: 
-- Namn 1
-- Namn 2
-- Namn 3
+- Namn Daniel Lännerholm Palm
+- Namn Alice Lönnerblad
+- Namn Anton Bylin
 date: last-modified
 format: 
   html:
@@ -96,9 +96,20 @@ Ställ in arbetsmappen samt ladda in dataseten `Boston_census_data.Rdata` och `B
 # Uppgift 0.1 - Svar
 
 ```{r}
-# Write your code here
+##install and require packages
+required_pkgs <- c("mosaic", "dplyr", "geosphere", "leaflet")
+pkg_is_installed <- required_pkgs %in% rownames(installed.packages())
+if(any(pkg_is_installed = FALSE)) {
+  install.packages(required_pkgs[!pkg_is_installed])
+}
+invisible(lapply(required_pkgs, FUN = function(pkgs) {
+  do.call("require", list(pkgs)) 
+}))
+
+#load boston census data
 load(file = url("https://github.com/StatisticsSU/SDA1/blob/main/assignments/assignment1/Boston_census_data.RData?raw=true")) 
 load(file = url("https://github.com/StatisticsSU/SDA1/blob/main/assignments/assignment1/Boston_districts_to_predict.RData?raw=true"))
+
 ```
 :::
 
@@ -116,9 +127,15 @@ Vad kan man generellt säga om kriminaliteten i censusdistrikten? Använd lämpl
 Skriv svaret här. Vid behov skrivs matematiska symboler inom dollartecken, till exempel $\overline{y} = \sum^{n}_{i=1} y_i$. Koden skrivs i R-rutan nedanför.
 
 ```{r}
-# Write your code here
+favstats(Boston_census_data$crime_rate)
+hist(Boston_census_data$crime_rate, breaks = 50)
+
 ```
 :::
+
+Vi ser att brottsligheten i en betydande majoritet av distrikt är låg, men ett fåtal distrikt har extremt hög kriminalitet. Troligtvis rör sig outliers inte om en felskrivning: värdena är korrekta.
+
+Då de outliers som finns har extremt höga värden kan det vara bättre att rapportera på IRQ/medianen istället för Standardavikelssen /medelvärdet, då de förstnämnda är mindre känsliga för extremvärden. Dock skulle det rent praktiskt vara något "oärligt" att ignorera extremvärdena då det i detta dataset är vad som är det intressanta att analysera.
 
 #### 💪 Uppgift 1.2
 
@@ -134,9 +151,18 @@ Skapa en ny data frame som filtrerar `Boston_census_data` (till exempel genom `f
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+selected_towns <- c("Boston East Boston", "Boston Downtown", "Cambridge", "Boston Roxbury", "Boston Savin Hill")
+town_subset <- Boston_census_data %>%
+  filter(town %in% selected_towns)
+
+fav_stats(town_subset$crime_rate)
+boxplot(crime_rate ~ town, data = town_subset)
+boxplot(log(crime_rate) ~ town, data = town_subset)
+# boxplot diagrammet visar att crime_rate . Cambridge har lägre brottsligehet.
 ```
 :::
+
+(förutsatt att vi inte nämner statistisk signifikans) så ser vi ett samband mellan town/crime rate i jämförandet mellan Cambridge och övriga städer. Om vi enbart jämför de 4 andra städerna mot varandra ser vi inte ett lika uppenbart samband.
 
 #### 💪 Uppgift 1.3
 
@@ -149,10 +175,16 @@ Kom ihåg att korrelation är ett beroendemått för *numeriska variabler*.
 ::: {.callout-note appearance="minimal"}
 # Uppgift 1.3 - Svar
 
-Skriv svaret här.
+Skriv svaret här. De tre variabler som hade högst korrelationskoffecient gentemot crime_rate är, i ordning störst \> minst: radial_access, tax_rate, och lower_stat_pct.
 
 ```{r}
-# Write your code here
+strictly_numerical <- Boston_census_data %>%
+  select_if(is.numeric) %>%
+  select(-any_of(c("longitude", "latitude", "borders_charles", "n_rooms_avg"))) #finns här kategoriska variabler kvar?
+correlations <- cor(strictly_numerical)
+correlations
+library(corrplot)
+corrplot(correlations, method = "number")
 ```
 :::
 
@@ -241,23 +273,15 @@ I detta avsnitt ska ni skapa en ny variabel som mäter avståndet till Fenway pa
 [^6]: Ett avstånd mellan två punkter uttryckta i latitud och longitud koordinater som tar hänsyn till att jorden är rund. Se [här](https://en.wikipedia.org/wiki/Haversine_formula) för detaljer.
 
 ```{r}
-library(geosphere) # Install if not available
-lat_long <- cbind(Boston_census_data$latitude, Boston_census_data$longitude)
-fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
-Boston_census_data$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
+
 ```
 
 Vi kan visualisera Fenway park samt censusdistrikten i en interaktiv karta med hjälp av R-paketet `leaflet`. Följande kod visualiserar Fenway park samt censusdistrikten för observationerna 30 och 45.
 
 ```{r}
-library(leaflet) # Install if not available
-Boston_map <- leaflet() %>% 
-  addTiles() %>%
-  addMarkers(lat = fenway_park_lat_long[1], lng = fenway_park_lat_long[2], popup="Fenway park") %>%
-  addMarkers(lat = Boston_census_data$latitude[30], lng = Boston_census_data$longitude[30], popup="Observation 30") %>%
-  addMarkers(lat = Boston_census_data$latitude[45], lng = Boston_census_data$longitude[45], popup="Observation 45") 
 
-Boston_map # Show interactive map
+
+
 ```
 
 #### 💪 Uppgift 3.1
@@ -274,7 +298,35 @@ När ni vet vad det längsta respektive kortaste avståndet är så kan ni anvä
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+library(geosphere) # Install if not available
+lat_long <- cbind(Boston_census_data$latitude, Boston_census_data$longitude)
+fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
+Boston_census_data$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
+
+histogram(~ dist_fenway_park, data = Boston_census_data, breaks = 50)
+
+dist_fenway_park_min <- min(~ dist_fenway_park, data = Boston_census_data)
+dist_fenway_park_max <- max(~ dist_fenway_park, data = Boston_census_data)
+closest_district_to_fenway_park <- filter(Boston_census_data, dist_fenway_park == dist_fenway_park_min)
+farthest_district_from_fenway_park <- filter(Boston_census_data, dist_fenway_park == dist_fenway_park_max)
+#Distriktet med kortast avstånd = Wilmington med en distans på 887.
+#Distriktet med längst avstånd = Marshfield med en distans på 33638.
+
+#Draw interactive map
+library(geosphere) 
+lat_long <- cbind(Boston_census_data$latitude, Boston_census_data$longitude)
+fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
+Boston_census_data$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
+
+library(leaflet) 
+Boston_map <- leaflet() %>% 
+  addTiles() %>%
+  addMarkers(lat = fenway_park_lat_long[1], lng = fenway_park_lat_long[2], popup="Fenway park") %>%
+  addMarkers(lat = closest_district_to_fenway_park$latitude[1], lng = closest_district_to_fenway_park$longitude[1], popup = closest_district_to_fenway_park$town) %>%
+  addMarkers(lat = farthest_district_from_fenway_park$latitude[1], lng = farthest_district_from_fenway_park$longitude[1], popup = farthest_district_from_fenway_park$town)
+
+Boston_map # Show interactive map
+
 ```
 :::
 
@@ -288,7 +340,11 @@ Finns det ett samband mellan `dist_fenway_park` och `median_home_value`?
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+cor(Boston_census_data$median_home_value, Boston_census_data$dist_fenway_park)
+#mycke låg korrelation. ej signifikan?
+plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
+#plotten visar inget samband
+lm(Boston_census_data)
 ```
 :::
 
