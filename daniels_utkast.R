@@ -145,6 +145,56 @@ plot(Boston_census_data$dist_fenway_park, Boston_census_data$crime_rate)
 
 ### 4.1
 
-fit <- lm(NOx ~ employ_dist, data = Boston_census_data)
+#fit the model
+fit <- lm(NOx ~ employ_dist, data = Boston_census_data, ylab = "NOx", xlab = "employ_dist")
+
+#print summary statistics
 summary(fit)
+
+#plot regression line over scatterplot
+plot(NOx ~ employ_dist, data = Boston_census_data)
+abline(fit)
+
+# första intrycket är att modellen inte är bra, eftersom datan inte är linjärt. Dessutom kanske det finns några outliers där empl_dist är större än 10.
+# Vi kontrollerar med residualanalys.
+
+# show all diagnostic charts 
+par(mfrow = c(2, 2))
 plot(fit)
+par(mfrow = c(1, 1))
+
+#  Normal Q-Q plotten visar att de standardiserade residualern inte följer en rak linje med 45 graders vinkel. Detta är ett tecken på att modellen inte är väl anpassad, eftersom normalitetsantagandet inte är uppfyllt.
+
+#I residuals vs fitted syns ett samband mellan residualerna och fitted values. Detta är ett tecken på att sambandet mellan NOx och employ_dist inte är linjärt.
+
+# Scale-location diagrammet bör visa en hyfsat rak horisontell inje. om den inte gör det tyder det på att homoscedasticitetsantagandet inte är uppfyllt, dvs. att residualvarianserna ökar eller minskar beroende på den oberoende variabeln. I plotten är linjen inte horisontell horisonell och rak 
+# sist tittar vi på residuals vs. leverage. Den är svårtolkad, men det verkar som att det finns ett par outliers som förstör för oss. Kanske är det bättre att återkomma till denna  när vi har gjort en bättre modelanpassning.
+
+# överlag är det en dålig modell, för ingen av antagandena verkar vara uppfyllda.
+
+### 4.2
+
+new <- data.frame(employ_dist = c(10.5857))
+predicted <- predict(fit, newdata = new)
+actual <- Boston_census_data[10, 9]
+res <- predicted - actual
+res
+
+### 4.3
+
+# vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i trappan med x eler y eller både x och y.
+
+par(mfrow = c(2, 2))
+plot(NOx ~ employ_dist, data = Boston_census_data) ## ej linjärt
+plot(NOx ~ I(sqrt(employ_dist)), data = Boston_census_data) # fortfarande ej linjärt
+plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) # hyfsat linjärt
+plot(log(NOx) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) ## icke linjärt och motsatt håll. vi gick för långt.
+par(mfrow = c(1, 1))
+## vi väljer att logaritmera både x och y
+
+# anpassar en ny modell
+
+fit2 <- lm(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data)
+summary(fit2)
+plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) # hyfsat linjärt
+abline(fit2)
