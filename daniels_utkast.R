@@ -141,12 +141,13 @@ plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
 cor(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
 #svagt negativt korrelation
 plot(Boston_census_data$dist_fenway_park, Boston_census_data$crime_rate)
-# men plot visar e spike i crime rate ungefärmellan 5000-10000(m?) avstånd. korrelation är förmodligen ej ett bra mått här
+# men plot visar e spike i crime rate ungefärmellan 5000-10000(m?) avstånd.
+# korrelation är förmodligen ej ett bra mått här
 
 ### 4.1
 
 #fit the model
-fit <- lm(NOx ~ employ_dist, data = Boston_census_data, ylab = "NOx", xlab = "employ_dist")
+fit <- lm(NOx ~ employ_dist, data = Boston_census_data)
 
 #print summary statistics
 summary(fit)
@@ -155,7 +156,8 @@ summary(fit)
 plot(NOx ~ employ_dist, data = Boston_census_data)
 abline(fit)
 
-# första intrycket är att modellen inte är bra, eftersom datan inte är linjärt. Dessutom kanske det finns några outliers där empl_dist är större än 10.
+# första intrycket är att modellen inte är bra, eftersom datan inte är linjärt.
+#Dessutom kanske det finns några outliers där empl_dist är större än 10.
 # Vi kontrollerar med residualanalys.
 
 # show all diagnostic charts 
@@ -163,38 +165,77 @@ par(mfrow = c(2, 2))
 plot(fit)
 par(mfrow = c(1, 1))
 
-#  Normal Q-Q plotten visar att de standardiserade residualern inte följer en rak linje med 45 graders vinkel. Detta är ett tecken på att modellen inte är väl anpassad, eftersom normalitetsantagandet inte är uppfyllt.
+# Normal Q-Q plotten visar att de standardiserade residualern inte följer en 
+# rak linje med 45 graders vinkel. Detta är ett tecken på att modellen inte är 
+# väl anpassad, eftersom residualerna inte är normalfördelade.
 
-#I residuals vs fitted syns ett samband mellan residualerna och fitted values. Detta är ett tecken på att sambandet mellan NOx och employ_dist inte är linjärt.
+# I residuals vs fitted syns ett (icke linjärt) samband mellan residualerna och fitted values. 
+# Detta är ett tecken på att sambandet mellan NOx och employ_dist inte är linjärt.
+# Dessutom uppvisar den heteroscedasticitet, dvs att residualerna blir större 
+# längre åt höger.
 
-# Scale-location diagrammet bör visa en hyfsat rak horisontell inje. om den inte gör det tyder det på att homoscedasticitetsantagandet inte är uppfyllt, dvs. att residualvarianserna ökar eller minskar beroende på den oberoende variabeln. I plotten är linjen inte horisontell horisonell och rak 
-# sist tittar vi på residuals vs. leverage. Den är svårtolkad, men det verkar som att det finns ett par outliers som förstör för oss. Kanske är det bättre att återkomma till denna  när vi har gjort en bättre modelanpassning.
+# sist tittar vi på residuals vs. leverage. Vi letar efter outliers med hög
+# residual och hög leverage, eftersom de har stor effekt på modellen. Särskilt
+# observationerna 125 och 130 verkar vara särskilt inflytelserika.
+# Kanske skullle modellen bli bättre om de togs bort.
 
 # överlag är det en dålig modell, för ingen av antagandena verkar vara uppfyllda.
 
 ### 4.2
 
-new <- data.frame(employ_dist = c(10.5857))
-predicted <- predict(fit, newdata = new)
-actual <- Boston_census_data[10, 9]
-res <- predicted - actual
-res
+new_x <- data.frame(employ_dist = c(Boston_census_data[10,12]))
+predicted <- predict(fit, newdata = new_x)
+predicted
+resid <- residuals(fit)[10]
 
 ### 4.3
 
-# vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i trappan med x eler y eller både x och y.
+# vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i 
+#trappan med x eler y eller både x och y.
 
-par(mfrow = c(2, 2))
-plot(NOx ~ employ_dist, data = Boston_census_data) ## ej linjärt
-plot(NOx ~ I(sqrt(employ_dist)), data = Boston_census_data) # fortfarande ej linjärt
-plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) # hyfsat linjärt
-plot(log(NOx) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) ## icke linjärt och motsatt håll. vi gick för långt.
+par(mfrow = c(4, 4))
+#plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(NOx ~ I(sqrt(employ_dist)), data = Boston_census_data) 
+plot(NOx ~ I(log(employ_dist)), data = Boston_census_data) 
+plot(NOx ~ I(-(employ_dist^(-1/2))), data = Boston_census_data) 
+plot(NOx ~ I(-(employ_dist^(-1))), data = Boston_census_data) 
+# I(-(employ_dist^(-1/2)))
+plot(sqrt(NOx) ~ employ_dist, data = Boston_census_data) 
+plot(log(NOx) ~ employ_dist, data = Boston_census_data) 
+plot(I(-NOx^(-1/2)) ~ employ_dist, data = Boston_census_data) 
+plot(I(-NOx^(-1)) ~ employ_dist, data = Boston_census_data) 
+
+plot(sqrt(NOx) ~ I(sqrt(employ_dist)), data = Boston_census_data) 
+plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) 
+plot(log(NOx) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
+plot( ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
+plot(I(-NOx^(-1)) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
+plot(I(-NOx^(-1)) ~ I(log(employ_dist)), data = Boston_census_data) # välj denna
+plot(I(-NOx^(-1)) ~ I(sqrt(employ_dist)), data = Boston_census_data) 
 par(mfrow = c(1, 1))
-## vi väljer att logaritmera både x och y
+
 
 # anpassar en ny modell
 
-fit2 <- lm(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data)
+#fit2 <- lm(NOx ~ log(employ_dist), data = Boston_census_data)
+#plot(NOx ~ log(employ_dist), data = Boston_census_data)
+
+
+
+#fit2 <- lm(I(-NOx^(-1/2)) ~ I(log(employ_dist)), data = Boston_census_data)
+#plot(I(-NOx^(-1/2)) ~ log(employ_dist), data = Boston_census_data)
+
+fit2 <- lm(log(NOx) ~ log(employ_dist), data = Boston_census_data)
+plot(log(NOx) ~ log(employ_dist), data = Boston_census_data)
+
+abline(fit2) #fel sorts linje
+
 summary(fit2)
-plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) # hyfsat linjärt
-abline(fit2)
+par(mfrow = c(2, 4))
+plot(fit2)
+plot(fit)
+par(mfrow = c(1, 1))
+# den nya modellen är något bättre än den gamla, men inte perfekt.
+# Normal Q-Q plotten följer den diagonala raka linjen något bättre, 
+# men de standardiserade residualerna är fortfarande för höga för höga och låga värden.
+# residual vs. fitted visar inget samband, men är fortfarande heteroscedastisk. 
