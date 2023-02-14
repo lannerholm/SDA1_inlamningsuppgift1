@@ -392,9 +392,9 @@ Skriv svaret här.
 
 ```{r}
 cor(Boston_census_data$median_home_value, Boston_census_data$dist_fenway_park)
-#mycke låg korrelation. ej signifikan?
+#Vi ser ett mycket svagt negativt samband,med styrkan -0.002.
 plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
-#plotten visar inget samband
+#plotten visar inte heller något samband, så vi kan med ganska god säkerhet säga att det inte finns något meningsfullt samband mellan de två variablerna.
 ```
 :::
 
@@ -408,7 +408,10 @@ Finns det ett samband mellan `dist_fenway_park` och `crime_rate`?
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+cor(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
+#Det finns ett negativt samband med en styrka på ca -0.1228.
+plot(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
+#Då brottslighet är mycket låg i majoritet av distrikten är plotten däremot svår att avläsa: i de allra flesta fall begås nästan inga brott alls. Däremot verkar alla distrikt med en brottslighet > ca 3 ligga mellan 5000-10 000 distansenheter från fenway park.Det finns alltså ett mycket tydligt samband som ej reflekteras i korrelationskoficienten. 
 ```
 :::
 
@@ -540,11 +543,12 @@ Anpassa en linjär regression med responsvariabel logaritmerad `median_home_valu
 ::: {.callout-note appearance="minimal"}
 # Uppgift 5.1 - Svar
 
-Skriv svaret här.
-
 ```{r}
-# Write your code here
+median_home_model <- lm(log(median_home_value) ~ lower_stat_pct + borders_charles, data = Boston_census_data)
+summary(median_home_model)
 ```
+
+Koefficienten för borders_charles, ger oss värdet 0.134560. Variansen i det predicerade medianpriset för ett hus, givet att `lower_stat_pct` är konstant, kan förklaras av variabeln `borders_charles` till 13.456%.
 :::
 
 #### 💪 Uppgift 5.2
@@ -557,7 +561,8 @@ Anpassa en linjär regression med responsvariabel `NOx` samt förklarande variab
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+NOx_Model <- lm(NOx ~ lower_stat_pct + borders_charles, data = Boston_census_data)
+summary(NOx_Model)
 ```
 :::
 
@@ -572,11 +577,13 @@ Tänk på att ta hänsyn till log-transformationen i den anpassade modellen!
 ::: {.callout-note appearance="minimal"}
 # Uppgift 5.3 - Svar
 
-Skriv svaret här.
-
 ```{r}
-# Write your code here
+observation_30 <- data.frame(Boston_census_data[30, ])
+observation_30_hat <- predict(median_home_model, observation_30)
+exp(observation_30_hat)
 ```
+
+Det predicerade värdet, transformerat till sin y-skala, är 24.61193. Residualen för det predicerade värdet blir då (22 - 24.61193 = 2.6111193)
 :::
 
 #### 💪 Uppgift 5.4

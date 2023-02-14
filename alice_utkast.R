@@ -80,4 +80,17 @@ Boston_map <- leaflet() %>%
 
 Boston_map # Show interactive map
 
+#Uppgift 5.1
+fit <- lm(log(median_home_value) ~ lower_stat_pct + borders_charles, data = Boston_census_data)
+summary(fit)
+#Koefficienten för borders charles, givet att lower_stat_pct är konstant = 0.134560. Det predicerade medianpriset för ett hus påverkas av att gränsa till borders_charles med 13.456% 
+#Uppgift 5.2
+NOx_vs_lower_stat_pct_borders_charles <- lm(NOx ~ lower_stat_pct + borders_charles, data = Boston_census_data)
+summary(NOx_vs_lower_stat_pct_borders_charles)
+#Lågt R^2, så låg statistisk signifikans??? Förstod inte uppgiften tror jag...
 
+#Uppgift 5.3
+observation_30 <- data.frame(Boston_census_data[30, ])
+observation_30_hat <- predict(lm_median_home_vs_lower_stat_pct_borders_charles, observation_30)
+exp(observation_30_hat)
+# Y_hatt = 3.20, exp(Y_Hatt) = 24.61193.[Residual = 24.6111193 - 22 = 2.6111193]
