@@ -482,10 +482,32 @@ Tänk på att ta hänsyn till eventuella transformationer!
 ::: {.callout-note appearance="minimal"}
 # Uppgift 4.3 - Svar
 
-Vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i trappan med antingen x eller y eller med både x och y.
+Vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i trappan med antingen x eller y eller med både x och y. Vi gör följande två transformationer:
+
+$$x \Rightarrow \sqrt{x}$$
+
+$$
+y \Rightarrow -y^{-\frac{1}{2}}
+$$
+
+Och får en scatterplot som visar ett rakare samband.
 
 ```{r}
-# Write your code here
+fit2 <- lm(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+
+plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+
+
+```
+
+Residualerna visar en förbättring, men det är ännu inte perfekt. Normal Q-Q plotten följer den diagonala raka linjen något bättre, men de standardiserade residualerna är fortfarande för höga för höga och låga värden.
+
+\# residual vs. fitted visar ett svagt icke-linjärt samband.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(fit2)
+par(mfrow = c(1, 1))
 ```
 :::
 
