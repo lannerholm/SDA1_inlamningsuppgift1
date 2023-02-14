@@ -187,54 +187,134 @@ new_x <- data.frame(employ_dist = c(Boston_census_data[10,12]))
 predicted <- predict(fit, newdata = new_x)
 predicted
 resid <- residuals(fit)[10]
-
+resid
 ### 4.3
 
 # vi är i nedre vänstra hörnet på tukeys cirkel och kan därför gå neråt i 
 #trappan med x eler y eller både x och y.
 
 par(mfrow = c(4, 4))
-#plot(NOx ~ employ_dist, data = Boston_census_data)
-plot(NOx ~ I(sqrt(employ_dist)), data = Boston_census_data) 
-plot(NOx ~ I(log(employ_dist)), data = Boston_census_data) 
+plot(NOx ~ employ_dist, data = Boston_census_data)
+
+plot(NOx ~ sqrt(employ_dist), data = Boston_census_data) 
+plot(NOx ~ log(employ_dist), data = Boston_census_data) 
 plot(NOx ~ I(-(employ_dist^(-1/2))), data = Boston_census_data) 
 plot(NOx ~ I(-(employ_dist^(-1))), data = Boston_census_data) 
-# I(-(employ_dist^(-1/2)))
+
 plot(sqrt(NOx) ~ employ_dist, data = Boston_census_data) 
 plot(log(NOx) ~ employ_dist, data = Boston_census_data) 
 plot(I(-NOx^(-1/2)) ~ employ_dist, data = Boston_census_data) 
 plot(I(-NOx^(-1)) ~ employ_dist, data = Boston_census_data) 
 
-plot(sqrt(NOx) ~ I(sqrt(employ_dist)), data = Boston_census_data) 
-plot(log(NOx) ~ I(log(employ_dist)), data = Boston_census_data) 
+plot(sqrt(NOx) ~ sqrt(employ_dist), data = Boston_census_data) 
+plot(sqrt(NOx) ~ log(employ_dist), data = Boston_census_data)
+plot(log(NOx) ~ sqrt(employ_dist), data = Boston_census_data)
+plot(log(NOx) ~ log(employ_dist), data = Boston_census_data) 
+
 plot(log(NOx) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
-plot( ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
 plot(I(-NOx^(-1)) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
-plot(I(-NOx^(-1)) ~ I(log(employ_dist)), data = Boston_census_data) # välj denna
-plot(I(-NOx^(-1)) ~ I(sqrt(employ_dist)), data = Boston_census_data) 
+plot(I(-NOx^(-1/2)) ~ I(-(employ_dist^-(1/2))), data = Boston_census_data) 
+
+### dessa fyra ser hyfsat ok ut
+plot(I(-NOx^(-1)) ~ log(employ_dist), data = Boston_census_data) # välj denna
+plot(I(-NOx^(-1/2)) ~ log(employ_dist), data = Boston_census_data) # välj denna
+plot(I(-NOx^(-1)) ~ sqrt(employ_dist), data = Boston_census_data) 
+plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data) 
 par(mfrow = c(1, 1))
 
 
-# anpassar en ny modell
-
-#fit2 <- lm(NOx ~ log(employ_dist), data = Boston_census_data)
-#plot(NOx ~ log(employ_dist), data = Boston_census_data)
-
-
-
-#fit2 <- lm(I(-NOx^(-1/2)) ~ I(log(employ_dist)), data = Boston_census_data)
-#plot(I(-NOx^(-1/2)) ~ log(employ_dist), data = Boston_census_data)
-
-fit2 <- lm(log(NOx) ~ log(employ_dist), data = Boston_census_data)
-plot(log(NOx) ~ log(employ_dist), data = Boston_census_data)
-
-abline(fit2) #fel sorts linje
-
+###################################################
+fit2 <- lm(I(-NOx^(-1)) ~ log(employ_dist), data = Boston_census_data)
 summary(fit2)
-par(mfrow = c(2, 4))
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1)) ~ log(employ_dist), data = Boston_census_data)
 plot(fit2)
+plot(NOx ~ employ_dist, data = Boston_census_data)
 plot(fit)
 par(mfrow = c(1, 1))
+###############################################
+
+
+###################################################
+fit3 <- lm(I(-NOx^(-1/2)) ~ log(employ_dist), data = Boston_census_data)
+summary(fit2)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1/2)) ~ log(employ_dist), data = Boston_census_data)
+plot(fit3)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+###################################################
+fit4 <- lm(I(-NOx^(-1)) ~ sqrt(employ_dist), data = Boston_census_data)
+summary(fit2)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1)) ~ sqrt(employ_dist), data = Boston_census_data)
+plot(fit3)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+###################################################
+fit5 <- lm(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+summary(fit2)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+plot(fit5)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+###################################################
+fit6 <- lm(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+summary(fit6)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+plot(fit3)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+###################################################
+fit7 <- lm(log(NOx) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+summary(fit7)
+par(mfrow = c(2, 5))
+plot(log(NOx) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+plot(fit7)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+###################################################
+bdt <- Boston_census_data %>%
+
+fit8 <- lm(I(-NOx^(-1/2)) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+summary(fit8)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1/2)) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+plot(fit8)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
+
+###################################################
+fit9 <- lm(I(-NOx^(-1)) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+summary(fit9)
+par(mfrow = c(2, 5))
+plot(I(-NOx^(-1/2)) ~ I(-employ_dist^(-1/2)), data = Boston_census_data)
+plot(fit9)
+plot(NOx ~ employ_dist, data = Boston_census_data)
+plot(fit)
+par(mfrow = c(1, 1))
+###############################################
+
 # den nya modellen är något bättre än den gamla, men inte perfekt.
 # Normal Q-Q plotten följer den diagonala raka linjen något bättre, 
 # men de standardiserade residualerna är fortfarande för höga för höga och låga värden.
