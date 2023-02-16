@@ -628,7 +628,7 @@ plot(Boston_census_data$radial_access, Boston_census_data$median_home_value)
 plot(Boston_census_data$NOx, Boston_census_data$median_home_value)
 plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
 
-multipleModel <- lm(median_home_value ~ crime_rate + before_1940_p + radial_access + NOx + dist_fenway_park, data = Boston_census_data)
+multipleModel <- lm(median_home_value ~ crime_rate + before_1940_p+ NOx + dist_fenway_park, data = Boston_census_data)
 summary(multipleModel)
 
 
@@ -639,22 +639,119 @@ Vi plottade de enskilda variablerna mot median_home_value för att se om där va
 ```{r}
 
 par(mfrow = c(1, 2))
-plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value)
-plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value^2)
+plot(median_home_value ~ before_1940_p, data = Boston_census_data)
+plot(median_home_value ~ I(before_1940_p^2), data = Boston_census_data)
 par(mfrow = c(1, 1))
 
+par(mfrow = c(1, 2))
+plot(median_home_value ~ crime_rate, data = Boston_census_data)
+plot(median_home_value ~ log(crime_rate), data = Boston_census_data)
+par(mfrow = c(1, 1))
 
+par(mfrow = c(1, 2))
+plot(median_home_value ~ NOx, data = Boston_census_data)
+plot(median_home_value ~ I(NOx^2), data = Boston_census_data) #original is better
+par(mfrow = c(1, 1))
+
+par(mfrow = c(1, 2))
+plot(median_home_value ~ dist_fenway_park, data = Boston_census_data)
+plot(median_home_value ~ sqrt(dist_fenway_park), data = Boston_census_data) #original is same
+par(mfrow = c(1, 1))
 ```
 
 Pubktdiagrammet för när y är kvadrerad är mer linjär. Vi kör regressionen igen och ser om förklaringsgraden ökar.
 
 ```{r}
-multipleModel2 <- lm(median_home_value ~ crime_rate + I(before_1940_p^2) + radial_access + NOx + dist_fenway_park, data = Boston_census_data)
+
+multipleModel2 <- lm(median_home_value ~ I(before_1940_p^2) + log(crime_rate) + NOx + dist_fenway_park, data = Boston_census_data)
 summary(multipleModel2)
 ```
+
+Vi såg en liten förbättring av Adjusted R-squared, från 0.3988 till 0.4013. Vi korsvaliderar nu våran modell.
+
+```{r}
+#Crossvalidation for our non-transformed model
+
+n <- 480 # Number of observations
+# Fold 1:
+obs_index <- c(1:n) # Keeps track of the indices of  the dataset (1, 2, 3, ...., n = 125)
+test_fold_index <- obs_index[c(1:120)] # Subsets indices 1:25 (test data fold 1) 
+training_fold_index <- obs_index[-c(1:120)] # Takes out the complement
+lm_modell1_fold1 <- lm(median_home_value ~ before_1940_p + crime_rate + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) # Estimate fold 1
+test_data <- Boston_census_data[test_fold_index, ] # Create test data for fold
+y_hat_fold1 <- predict(lm_modell1_fold1, newdata = test_data) # Predict test data in sqrt scale
+SSE_fold1 <- sum((test_data$median_home_value - y_hat_fold1)^2) 
+
+# Fold 2:
+test_fold_index <- obs_index[c(121:240)] 
+training_fold_index <- obs_index[-c(121:240)] 
+lm_modell1_fold2 <- lm(median_home_value ~ before_1940_p + crime_rate + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data)
+test_data <- Boston_census_data[test_fold_index, ]
+y_hat_fold2 <- predict(lm_modell1_fold2, newdata = test_data) 
+SSE_fold2 <- sum((test_data$median_home_value - y_hat_fold2)^2) 
+
+# Fold 3:
+test_fold_index <- obs_index[c(241:360)] 
+training_fold_index <- obs_index[-c(241:360)] 
+lm_modell1_fold3 <- lm(median_home_value ~ before_1940_p + crime_rate + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) 
+test_data <- Boston_census_data[test_fold_index, ]
+y_hat_fold3 <- predict(lm_modell1_fold3, newdata = test_data) 
+SSE_fold3 <- sum((test_data$median_home_value - y_hat_fold3)^2) 
+
+# Fold 4:
+test_fold_index <- obs_index[c(241:360)]
+training_fold_index <- obs_index[-c(361:480)]
+lm_modell1_fold4 <- lm(median_home_value ~ before_1940_p + crime_rate + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) 
+test_data <- Boston_census_data[test_fold_index, ] 
+y_hat_fold4 <- predict(lm_modell1_fold4, newdata = test_data) 
+SSE_fold4 <- sum((test_data$median_home_value - y_hat_fold4)^2) 
+
+
+#Crossvalidation for the model without transformations
+n <- 480 # Number of observations
+# Fold 1:
+obs_index <- c(1:n) # Keeps track of the indices of  the dataset (1, 2, 3, ...., n = 125)
+test_fold_index <- obs_index[c(1:120)] # Subsets indices 1:25 (test data fold 1) 
+training_fold_index <- obs_index[-c(1:120)] # Takes out the complement
+lm_modell1_fold1 <- lm(median_home_value ~ I(before_1940_p) + log(crime_rate) + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) # Estimate fold 1
+test_data <- Boston_census_data[test_fold_index, ] # Create test data for fold
+y_hat_fold1 <- predict(lm_modell1_fold1, newdata = test_data) # Predict test data in sqrt scale
+SSE_fold1_transformed <- sum((test_data$median_home_value - y_hat_fold1)^2)
+
+# Fold 2:
+test_fold_index <- obs_index[c(121:240)] 
+training_fold_index <- obs_index[-c(121:240)] 
+lm_modell1_fold2 <- lm(median_home_value ~ I(before_1940_p^2) + log(crime_rate) + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data)
+test_data <- Boston_census_data[test_fold_index, ]
+y_hat_fold2 <- predict(lm_modell1_fold2, newdata = test_data) 
+SSE_fold2_transformed <- sum((test_data$median_home_value - y_hat_fold2)^2) 
+
+# Fold 3:
+test_fold_index <- obs_index[c(241:360)] 
+training_fold_index <- obs_index[-c(241:360)] 
+lm_modell1_fold3 <- lm(median_home_value ~ I(before_1940_p^2) + log(crime_rate) + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) 
+test_data <- Boston_census_data[test_fold_index, ]
+y_hat_fold3 <- predict(lm_modell1_fold3, newdata = test_data) 
+SSE_fold3_transformed <- sum((test_data$median_home_value - y_hat_fold3)^2) 
+
+# Fold 4:
+test_fold_index <- obs_index[c(241:360)]
+training_fold_index <- obs_index[-c(361:480)]
+lm_modell1_fold4 <- lm(median_home_value ~ I(before_1940_p^2) + log(crime_rate) + NOx + dist_fenway_park, subset = training_fold_index, data = Boston_census_data) 
+test_data <- Boston_census_data[test_fold_index, ] 
+y_hat_fold4 <- predict(lm_modell1_fold4, newdata = test_data) 
+SSE_fold4_transformed <- sum((test_data$median_home_value - y_hat_fold4)^2) 
+
+
+#RMSE
+sqrt((1/n) * (sum(SSE_fold1, SSE_fold2, SSE_fold3, SSE_fold4)))
+sqrt((1/n) * (sum(SSE_fold1_transformed, SSE_fold2_transformed, SSE_fold3_transformed, SSE_fold4_transformed)))
+```
+
+Vi såg också en liten förbättring i RMSE, från 5.6556 till 5.567.
 :::
 
-#### 💪 Uppgift 5.5
+💪 Uppgift 5.5
 
 Gör en residualanalys av den valda modellen i Uppgift 5.3.
 
@@ -664,9 +761,21 @@ Gör en residualanalys av den valda modellen i Uppgift 5.3.
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+resid <- residuals(multipleModel2)
+head(resid)
+plot(multipleModel2$fitted.values, resid, xlab = "yhatt", ylab = "Residuals")
 ```
 :::
+
+Vi ser att när vi plottar residualer mot yhatt ser vi en viss kon-form, vilket inte är optimalt, eftersom det tyder på att variansen inte är konstant. Vi ser inte heller något tydligt samband uppstå mellan residualerna och det predicerade värdet, vilket är ett gott tecken. Det ser alltså helt okej ut att fortsätta som vi gjort med att förbättra modellen härifrån.
+
+```{r}
+qqnorm(resid)
+qqline(resid)
+
+```
+
+Vi ser på våran qqplot att den är hyfsat linjär, och ser bra ut mellan -1 och 1. Därefter blir den snabbt mycket sämre.
 
 #### 💪 Uppgift 5.6
 
@@ -682,6 +791,12 @@ Tänk på att ta hänsyn till eventuella transformationer av de förklarande var
 Skriv svaret här.
 
 ```{r}
-# Write your code here
+#Fix Boston_districts_to_predict
+lat_long <- cbind(Boston_districts_to_predict$latitude, Boston_districts_to_predict$longitude)
+fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
+Boston_districts_to_predict$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
+
+predict(multipleModel2, Boston_districts_to_predict)
+predict(multipleModel, Boston_districts_to_predict)
 ```
 :::
