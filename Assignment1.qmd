@@ -622,8 +622,8 @@ Vill man transformera responsen kan man följa korsvalideringsexemplet (med tran
 Vi plottar först de olika förklarande variablerna emot median_home_value för att se hur lämpliga de enskilda distributionerna var att använda till en linjär regression. Vi kollade om de var linjära nog,
 
 ```{r}
+plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value)
 plot(Boston_census_data$crime_rate, Boston_census_data$median_home_value)
-plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value^2)
 plot(Boston_census_data$radial_access, Boston_census_data$median_home_value)
 plot(Boston_census_data$NOx, Boston_census_data$median_home_value)
 plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
@@ -632,6 +632,25 @@ multipleModel <- lm(median_home_value ~ crime_rate + before_1940_p + radial_acce
 summary(multipleModel)
 
 
+```
+
+Vi plottade de enskilda variablerna mot median_home_value för att se om där var några icke-linjära samband. Vi mörkte att before_1940_p var något böjd och gjorde en transformation med y =\> y\^2.
+
+```{r}
+
+par(mfrow = c(1, 2))
+plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value)
+plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value^2)
+par(mfrow = c(1, 1))
+
+
+```
+
+Pubktdiagrammet för när y är kvadrerad är mer linjär. Vi kör regressionen igen och ser om förklaringsgraden ökar.
+
+```{r}
+multipleModel2 <- lm(median_home_value ~ crime_rate + I(before_1940_p^2) + radial_access + NOx + dist_fenway_park, data = Boston_census_data)
+summary(multipleModel2)
 ```
 :::
 
