@@ -129,7 +129,7 @@ Histogrammet visar att fördelningen för crime_rate är unimodal och mycket ske
 
 Vi utgår ifrån att outliers inte är felskrivningar, och att de värdena är korrekta. Dessutom, tror vi, är det dessa punker som är mest intressanta när man vill vet mer om brottsligheten i Boston.
 
-Figurerna och fördelningsmåtten ger oss en bild av ett mestadels fridfullt Boston, där kriminaliteten är koncentrerad till ett relativt fåtal områden, s.k. hot-spots. Varför brottsligheten är koncentrerad i just de områdena vet vi inte än, men vi kan spekulera i att det kanske beror på att det i de områdena förekommer nattliv (dvs. är nära stadskärnan), eller att sammhällets utslagna bor där (dvs. låg median_home_value).
+Figurerna och fördelningsmåtten ger oss en bild av ett mestadels fridfullt Boston, där kriminaliteten är koncentrerad till ett relativt fåtal områden, s.k. hot-spots. Varför brottsligheten är koncentrerad i just de områdena vet vi inte än.
 
 ```{r}
 favstats(Boston_census_data$crime_rate)
@@ -149,8 +149,6 @@ Skapa en ny data frame som filtrerar `Boston_census_data` (till exempel genom `f
 
 ::: {.callout-note appearance="minimal"}
 # Uppgift 1.2 - Svar
-
-(förutsatt att vi inte nämner statistisk signifikans) så ser vi ett samband mellan town/crime rate i jämförandet mellan Cambridge och övriga städer. Om vi enbart jämför de 4 andra städerna mot varandra ser vi inte ett lika uppenbart samband.
 
 Boxplotten visar ett klart samband mellan town och crime_rate.
 
@@ -177,7 +175,7 @@ Kom ihåg att korrelation är ett beroendemått för *numeriska variabler*.
 ::: {.callout-note appearance="minimal"}
 # Uppgift 1.3 - Svar
 
-Eftersom korrelation bara gills för numeriska variabler tog vi först bort de som R ansåg vara kategoriska med hjälp av funktionen 'select_if(is.numeric)'.
+Eftersom korrelation bara är giltig för numeriska variabler tog vi först bort de som R ansåg vara kategoriska med hjälp av funktionen 'select_if(is.numeric)'.
 
 Sedan tog vi även bort variabeln 'border_charles', som är en dummy-variabel, och alltså inte är numerisk.
 
@@ -198,7 +196,7 @@ correlations <- cor(strictly_numerical)
 sorted_crime_rate_correlations <- sort(correlations[,4])
 sorted_crime_rate_correlations
 
-
+plot(crime_rate ~ radial_access, data = Boston_census_data)
 ```
 :::
 
@@ -775,7 +773,7 @@ qqline(resid)
 
 ```
 
-Vi ser på våran qqplot att den är hyfsat linjär, och ser bra ut mellan -1 och 1. Därefter blir den snabbt mycket sämre.
+Vi ser på våran qqplot att den är hyfsat linjär, och ser bra ut mellan -1 och 1. Därefter blir den snabbt mycket sämre därefter.
 
 #### 💪 Uppgift 5.6
 
@@ -796,7 +794,7 @@ lat_long <- cbind(Boston_districts_to_predict$latitude, Boston_districts_to_pred
 fenway_park_lat_long <- c(42.346462, -71.097250) # latitude and longitude for Fenway_park
 Boston_districts_to_predict$dist_fenway_park <- distHaversine(lat_long, fenway_park_lat_long)
 
-predict(multipleModel2, Boston_districts_to_predict)
-predict(multipleModel, Boston_districts_to_predict)
+prediction <- predict(multipleModel2, Boston_districts_to_predict)
+data.frame(prediction)
 ```
 :::
