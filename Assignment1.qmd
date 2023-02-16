@@ -549,7 +549,7 @@ median_home_model <- lm(log(median_home_value) ~ lower_stat_pct + borders_charle
 summary(median_home_model)
 ```
 
-Koefficienten för borders_charles, ger oss värdet 0.134560. Variansen i det predicerade medianpriset för ett hus, givet att `lower_stat_pct` är konstant, kan förklaras av variabeln `borders_charles` till 13.456%.
+Koefficienten för borders_charles, ger oss värdet 0.134560. Värdet av det predicerade medianpriset för ett hus, givet att `lower_stat_pct` är konstant, bör öka med ca 13.45% om huset ligger i ett distrikt som angränsar Charles.
 :::
 
 #### 💪 Uppgift 5.2
@@ -565,6 +565,10 @@ Skriv svaret här.
 NOx_Model <- lm(NOx ~ lower_stat_pct + borders_charles, data = Boston_census_data)
 summary(NOx_Model)
 ```
+
+För variabeln lower_stat_pct är den statistiska signifikansen \<2e-16, vilket är mycket lågt. Oddsen att det handlar om slumpen och inte ett faktiskt samband är mycket lågt.
+
+För variabeln borders_charles är den statistiska signifikansen 0.0145, vilket är högre. Oddsen att det handlar om slumpen och inte ett faktiskt samband är ca 1.45%, vilket är ganska högt beroende på sammanhanget. Däremot tror vi att resultatet fortfarande är statistiskt signifikant.
 :::
 
 #### 💪 Uppgift 5.3
@@ -615,10 +619,19 @@ Vill man transformera responsen kan man följa korsvalideringsexemplet (med tran
 ::: {.callout-note appearance="minimal"}
 # Uppgift 5.4 - Svar
 
-Skriv svaret här.
+Vi plottar först de olika förklarande variablerna emot median_home_value för att se hur lämpliga de enskilda distributionerna var att använda till en linjär regression. Vi kollade om de var linjära nog,
 
 ```{r}
-# Write your code here
+plot(Boston_census_data$crime_rate, Boston_census_data$median_home_value)
+plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value^2)
+plot(Boston_census_data$radial_access, Boston_census_data$median_home_value)
+plot(Boston_census_data$NOx, Boston_census_data$median_home_value)
+plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
+
+multipleModel <- lm(median_home_value ~ crime_rate + before_1940_p + radial_access + NOx + dist_fenway_park, data = Boston_census_data)
+summary(multipleModel)
+
+
 ```
 :::
 
