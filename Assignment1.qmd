@@ -506,16 +506,25 @@ Och får en scatterplot som visar ett rakare samband.
 fit2 <- lm(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
 
 plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
-#abline(fit2)
 
-#fit2_non_transformed <- lm(NOx ~ employ_dist, data = Boston_census_data)
-#plot(NOx ~ employ_dist, data = Boston_census_data)
-#abline(fit2_non_transformed)
+
+#/
+transformed_y_hat <- predict(fit2) # transformed scale prediction
+y_hat <- ((transformed_y_hat * -1)^(-1/2))^2 #original scale prediction
+head(transformed_y_hat)
+
+head(y_hat)
+
+plot(NOx ~ employ_dist, data = Boston_census_data, col = "cornflowerblue")# Data on original scale
+lines(Boston_census_data$employ_dist, y_hat, type = "p", col = "lightcoral")
+legend(x = "topleft", pch = c(1, 1), col = c("cornflowerblue", "lightcoral"), legend=c("Data", "Predicted"))
 
 
 ```
 
 Residualerna visar en förbättring, men det är ännu inte perfekt. Normal Q-Q plotten följer den diagonala raka linjen något bättre, men de standardiserade residualerna är fortfarande för höga för höga och låga värden.
+
+Vi ser att modellen inte gör ett bra jobb med att predicera data när vi jämför den emot data i originalskala.
 
 \# residual vs. fitted visar endast ett svagt icke-linjärt samband, som är bättre än tidigare.
 
@@ -633,7 +642,7 @@ Vill man transformera responsen kan man följa korsvalideringsexemplet (med tran
 ::: {.callout-note appearance="minimal"}
 # Uppgift 5.4 - Svar
 
-Vi plottar först de olika förklarande variablerna emot median_home_value för att se hur lämpliga de enskilda distributionerna var att använda till en linjär regression. Vi kollade om de var linjära nog,
+Vi plottar först de olika förklarande variablerna emot median_home_value för att se hur lämpliga de enskilda distributionerna var att använda till en linjär regression. Vi kollade om de var linjära nog.
 
 ```{r}
 plot(Boston_census_data$before_1940_p, Boston_census_data$median_home_value)
@@ -648,7 +657,7 @@ summary(multipleModel)
 
 ```
 
-Vi plottade de enskilda variablerna mot median_home_value för att se om där var några icke-linjära samband. Vi mörkte att before_1940_p var något böjd och gjorde en transformation med y =\> y\^2.
+Vi plottade de enskilda variablerna mot median_home_value för att se om där var några icke-linjära samband. Vi mörkte att before_1940_p var något böjd och gjorde en transformation med y =\> y\^2. Vi såg också att variabeln crime_rate var skev och transformerade den till log-skala. Slutligen kvadrerade vi variabeln NOx och tog roten ur variabeln dist_fenway_park för att få något mindre skev data.
 
 ```{r}
 
@@ -673,15 +682,13 @@ plot(median_home_value ~ sqrt(dist_fenway_park), data = Boston_census_data) #ori
 par(mfrow = c(1, 1))
 ```
 
-Pubktdiagrammet för när y är kvadrerad är mer linjär. Vi kör regressionen igen och ser om förklaringsgraden ökar.
-
 ```{r}
 
 multipleModel2 <- lm(median_home_value ~ I(before_1940_p^2) + log(crime_rate) + NOx + dist_fenway_park, data = Boston_census_data)
 summary(multipleModel2)
 ```
 
-Vi såg en liten förbättring av Adjusted R-squared, från 0.3988 till 0.4013. Vi korsvaliderar nu våran modell.
+Vi såg en liten förbättring av Adjusted R-squared till följd av transformationerna, från 0.3988 till 0.4013. Vi korsvaliderar nu våran modell.
 
 ```{r}
 #Crossvalidation for our non-transformed model
@@ -762,7 +769,7 @@ sqrt((1/n) * (sum(SSE_fold1, SSE_fold2, SSE_fold3, SSE_fold4)))
 sqrt((1/n) * (sum(SSE_fold1_transformed, SSE_fold2_transformed, SSE_fold3_transformed, SSE_fold4_transformed)))
 ```
 
-Vi såg också en liten förbättring i RMSE, från 5.6556 till 5.567.
+Vi såg också en liten förbättring i RMSE, från 5.6556 till 5.567. Våran modell är alltså lite bättre än om vi enbart hade haft alla värden i originalskala.
 :::
 
 💪 Uppgift 5.5
@@ -771,8 +778,6 @@ Gör en residualanalys av den valda modellen i Uppgift 5.3.
 
 ::: {.callout-note appearance="minimal"}
 # Uppgift 5.5 - Svar
-
-Skriv svaret här.
 
 ```{r}
 resid <- residuals(multipleModel2)
@@ -789,7 +794,7 @@ qqline(resid)
 
 ```
 
-Vi ser på våran qqplot att den är hyfsat linjär, och ser bra ut mellan -1 och 1. Därefter blir den snabbt mycket sämre därefter.
+Vi ser på våran qqplot att den är hyfsat linjär, och ser bra ut mellan -1 och 1. Därefter blir den snabbt mycket sämre därefter. Vi hittade inget sätt att fixa detta på,
 
 #### 💪 Uppgift 5.6
 
