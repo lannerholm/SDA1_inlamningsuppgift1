@@ -187,6 +187,8 @@ Tabellen visat att de tre variabler som har högst korrelation med crime_rate ä
 
 -   lower_stat_pct (0.46)
 
+Om vi plottar variablerna mot varandra (crime rate är i log-skala för att tydligare representera data) ser vi ett linjärt samband mellan variablerna.
+
 ```{r}
 strictly_numerical <- Boston_census_data %>%
   select_if(is.numeric) %>%
@@ -196,7 +198,10 @@ correlations <- cor(strictly_numerical)
 sorted_crime_rate_correlations <- sort(correlations[,4])
 sorted_crime_rate_correlations
 
-plot(crime_rate ~ radial_access, data = Boston_census_data)
+plot(log(crime_rate) ~ radial_access, data = Boston_census_data)
+plot(log(crime_rate) ~ tax_rate, data = Boston_census_data)
+plot(log(crime_rate) ~ lower_stat_pct, data = Boston_census_data)
+
 ```
 :::
 
@@ -215,7 +220,7 @@ Histogrammet visar hur stor andel av distrikten som betalar en viss fastighetssk
 
 Distributionen av fastighetsskatten verkar vara bimodal (kanske till och med multimodal), med en topp strax över 300 per 10000 USD och en annan topp på 660 per 10000 USD. Mellan topparna är det en stor glipa.
 
-Multimodaltiteten gör att det blir svårt att uttala sig om distributionen. Det är t.ex lite oklart vilken form distributionen har, och vi kan inte säga om den t.ex är normalformad eller skev. Dessutom hamnart medianen (330) och medelvärdet (409) mitt i en dal, och alltså skulle distributionen ha ett lägesmått som ingen av värden ligger i närheten av. Multimodaliteten ger oss också problem när vi vill se på spridningen - t.ex så ligger IQR till hälften i ett område utan några värden alls.
+Multimodaltiteten gör att det blir svårt att uttala sig om distributionen. Det är t.ex lite oklart vilken form distributionen har, och vi kan inte säga om den t.ex är normalformad eller skev. Dessutom hamnar medianen (330) och medelvärdet (409) mitt i en dal, och alltså skulle distributionen ha ett lägesmått som ingen av värden ligger i närheten av. Multimodaliteten ger oss också problem när vi vill se på spridningen - t.ex så ligger IQR till hälften i ett område utan några värden alls.
 
 Här skulle det nog varea klokt att dela upp i kategorier, och på så sätt bli av med multimodaliteten. Det skulle förmodligen vara enklare och bättre att analysera distributionerna av de enskilda kategorierna.
 
@@ -248,7 +253,7 @@ Finns det ett samband mellan vilken skattekategori ett censusdistrikt tillhör o
 ::: {.callout-note appearance="minimal"}
 # Uppgift 2.2 - Svar
 
-Vi undrar vad andelen av varje skattekategori är givet borders_charles. Tabellen och figuren visar endast ett svagt samband mellan vilken skattekategori ett distrikt har, och dess angränsning till Charles River. Bland de distrikt som ligger i anslutning, har mindre en andel låg och hög skattekategori, än de distrikt som inte ligger i anslutning.
+Vi undrar vad andelen av varje skattekategori är givet borders_charles. Tabellen och figuren visar endast ett svagt samband mellan vilken skattekategori ett distrikt har, och dess angränsning till Charles River. De distrikt som ligger i anslutning till Charles är oftare i skattekategorin "medium" än de distrikt som inte ligger nära Charles. Därmed följer att fördelningen av distrikt som inte ligger nära Charles har en högre andel observationer i "high" och "low" skattekategorin.
 
 ```{r}
 
@@ -268,7 +273,7 @@ Hur många procent av alla censusdistrikt ligger i angränsning till Charles Riv
 
 Eftersom första frågan handlar om procentandelen av ALLA censusdistrikt, kan vi avläsa svaret i tabellen med tabellprocent. Vi ser att 2.1% av alla censusdistrikt ligger i angränsning till Charles River och tillhör en hög skattekategori
 
-Andra frågan handlar om procentandelan betingat på skattekategori. Därför kan vi avläsa svaret i tabellen med kolumnprocent. Vi ser att 94.7% av censusdistrikten med hög skatt inte ligger i angränsning till Charles River.
+Andra frågan handlar om procentandelen betingat på skattekategori. Därför kan vi avläsa svaret i tabellen med kolumnprocent. Vi ser att 94.7% av censusdistrikten med hög skatt inte ligger i angränsning till Charles River.
 
 ```{r}
 tally(~ cat_tax & borders_charles, data = Boston_census_data, margins = TRUE, format = "percent")
@@ -304,6 +309,8 @@ sorted_crime_rate_correlations
 plot(radial_access ~ tax_rate, data = Boston_census_data)
 plot(indust_p ~ tax_rate, data = Boston_census_data)
 ```
+
+Vi kan inte genom enbart korrelation bevisa något kausalt samband i någon av dessa fall.
 :::
 
 ## 3. Avstånd till Fenway park
@@ -345,7 +352,9 @@ När ni vet vad det längsta respektive kortaste avståndet är så kan ni anvä
 ::: {.callout-note appearance="minimal"}
 # Uppgift 3.1 - Svar
 
-Skriv svaret här.
+Distriktet med kortast avstånd från Fenway Park är Wilmington, med en distans på 887 distanenheter.
+
+Distriktet med längst avstånd från Fenway Park är Marshfield, med en distans på 33638 distansenheter.
 
 ```{r}
 library(geosphere) # Install if not available
@@ -387,13 +396,13 @@ Finns det ett samband mellan `dist_fenway_park` och `median_home_value`?
 ::: {.callout-note appearance="minimal"}
 # Uppgift 3.2 - Svar
 
-Skriv svaret här.
+Vi ser en mycket svag korrelation, med styrkan -0.002. Plotten visar inte heller något samband, så vi kan med ganska god säkerhet säga att det inte finns något meningsfullt samband mellan de två variablerna, annat än att variationen på median home value tycks vara större närmare Fenway Park.
 
 ```{r}
 cor(Boston_census_data$median_home_value, Boston_census_data$dist_fenway_park)
-#Vi ser ett mycket svagt negativt samband,med styrkan -0.002.
+
 plot(Boston_census_data$dist_fenway_park, Boston_census_data$median_home_value)
-#plotten visar inte heller något samband, så vi kan med ganska god säkerhet säga att det inte finns något meningsfullt samband mellan de två variablerna.
+
 ```
 :::
 
@@ -404,13 +413,12 @@ Finns det ett samband mellan `dist_fenway_park` och `crime_rate`?
 ::: {.callout-note appearance="minimal"}
 # Uppgift 3.3 - Svar
 
-Skriv svaret här.
+Det finns en negativ korrelation med en styrka på ca -0.1228. Då brottslighet är mycket låg i majoritet av distrikten är plotten däremot svår att avläsa: i de allra flesta fall begås nästan inga brott alls. Däremot verkar alla distrikt med en brottslighet \> ca 3 ligga mellan 5000-10 000 distansenheter från fenway park. Det finns alltså ett mycket tydligt samband som ej reflekteras i korrelationskoficienten.
 
 ```{r}
 cor(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
-#Det finns ett negativt samband med en styrka på ca -0.1228.
 plot(Boston_census_data$crime_rate, Boston_census_data$dist_fenway_park)
-#Då brottslighet är mycket låg i majoritet av distrikten är plotten däremot svår att avläsa: i de allra flesta fall begås nästan inga brott alls. Däremot verkar alla distrikt med en brottslighet > ca 3 ligga mellan 5000-10 000 distansenheter från fenway park.Det finns alltså ett mycket tydligt samband som ej reflekteras i korrelationskoficienten. 
+
 ```
 :::
 
@@ -498,13 +506,18 @@ Och får en scatterplot som visar ett rakare samband.
 fit2 <- lm(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
 
 plot(I(-NOx^(-1/2)) ~ sqrt(employ_dist), data = Boston_census_data)
+#abline(fit2)
+
+#fit2_non_transformed <- lm(NOx ~ employ_dist, data = Boston_census_data)
+#plot(NOx ~ employ_dist, data = Boston_census_data)
+#abline(fit2_non_transformed)
 
 
 ```
 
 Residualerna visar en förbättring, men det är ännu inte perfekt. Normal Q-Q plotten följer den diagonala raka linjen något bättre, men de standardiserade residualerna är fortfarande för höga för höga och låga värden.
 
-\# residual vs. fitted visar ett svagt icke-linjärt samband.
+\# residual vs. fitted visar endast ett svagt icke-linjärt samband, som är bättre än tidigare.
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -524,10 +537,13 @@ Tänk på att ta hänsyn till eventuella transformationer!
 ::: {.callout-note appearance="minimal"}
 # Uppgift 4.4 - Svar
 
-Skriv svaret här.
+Residualen för modellen i 4.3 är ca 0.1848. För modellen i Uppgift 2 är residualen -0.147. Modellen i uppgift 4.2 kom alltså närmare en modellen i uppgift 4.3
 
 ```{r}
-# Write your code here
+NOx_hat_transformed <- predict(fit2,newdata = data.frame(employ_dist = 10.5857))
+NOx_hat <- (1/sqrt(NOx_hat_transformed * -1))^2
+residual <- NOx_hat - Boston_census_data[10, 9]
+residual
 ```
 :::
 

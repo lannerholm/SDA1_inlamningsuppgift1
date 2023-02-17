@@ -87,7 +87,7 @@ summary(fit)
 #Uppgift 5.2
 NOx_vs_lower_stat_pct_borders_charles <- lm(NOx ~ lower_stat_pct + borders_charles, data = Boston_census_data)
 summary(NOx_vs_lower_stat_pct_borders_charles)
-#Lågt R^2, så låg statistisk signifikans??? Förstod inte uppgiften tror jag...
+#För variabeln lower_stat_pct är våran statistiska signifikans mellan 0 och 0.001, för variabeln borders_charles är våran 
 
 #Uppgift 5.3
 observation_30 <- data.frame(Boston_census_data[30, ])
