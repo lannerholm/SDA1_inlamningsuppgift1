@@ -134,7 +134,7 @@ Figurerna och fördelningsmåtten ger oss en bild av ett mestadels fridfullt Bos
 ```{r}
 favstats(Boston_census_data$crime_rate)
 hist(Boston_census_data$crime_rate, breaks = 50)
-boxplot(Boston_census_data$crime_rate)
+boxplot(Boston_census_data$crime_rate, ylab = "Crime Rate")
 
 ```
 :::
@@ -226,7 +226,7 @@ Här skulle det nog varea klokt att dela upp i kategorier, och på så sätt bli
 
 ```{r}
 histogram(Boston_census_data$tax_rate, breaks = 100)
-boxplot(Boston_census_data$tax_rate)
+boxplot(Boston_census_data$tax_rate, ylab = "Tax Rate")
 favstats(Boston_census_data$tax_rate)
 
 ```
